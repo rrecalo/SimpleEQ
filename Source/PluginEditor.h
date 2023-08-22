@@ -11,24 +11,16 @@
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
 
-//enum Slope
-//{
-//    Slope_12,
-//    Slope_24,
-//    Slope_36,
-//    Slope_48
-//};
-//
-//struct ChainSettings
-//{
-//    float peakFreq { 0 }, peakGainInDecibels{ 0 }, peakQuality {1.f};
-//    float lowCutFreq { 0 }, highCutFreq{ 0 };
-//    Slope lowCutSlope { Slope::Slope_12 }, highCutSlope { Slope::Slope_12 };
-//    
-//};
 
 ChainSettings getChainSettings(juce::AudioProcessorValueTreeState& apvts);
 
+struct CustomRotarySlider: juce::Slider
+{
+    CustomRotarySlider() : juce::Slider(juce::Slider::SliderStyle::RotaryHorizontalVerticalDrag, juce::Slider::TextEntryBoxPosition::NoTextBox)
+    {
+        
+    }
+};
 //==============================================================================
 /**
 */
@@ -47,5 +39,16 @@ private:
     // access the processor object that created it.
     SimpleEQAudioProcessor& audioProcessor;
 
+    CustomRotarySlider peakFreqSlider,
+    peakGainSlider,
+    peakQualitySlider,
+    lowCutFreqSlider,
+    highCutFreqSlider,
+    lowCutSlopeSlider,
+    highCutSlopeSlider;
+    
+    std::vector<juce::Component*> getComps();
+    
+    
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SimpleEQAudioProcessorEditor)
 };
