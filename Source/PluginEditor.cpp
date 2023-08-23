@@ -10,28 +10,38 @@
 #include "PluginEditor.h"
 
 
-void LookAndFeel::drawRotarySlider(juce::Graphics & g, int x, int y, int width, int height, float sliderPosProportional, float rotaryStartAngle, float rotaryEndAngle, juce::Slider & slider)
+void LookAndFeel::drawRotarySlider(juce::Graphics & g,
+                                   int x,
+                                   int y,
+                                   int width,
+                                   int height,
+                                   float sliderPosProportional,
+                                   float rotaryStartAngle,
+                                   float rotaryEndAngle,
+                                   juce::Slider & slider)
 {
     using namespace juce;
     
-    auto bounds = Rectangle<float>(x, y,  width, height);
+    auto bounds = Rectangle<float>(x, y, width, height);
     
-    g.setColour(Colour(97u, 18u, 167u));
+    auto enabled = slider.isEnabled();
+    
+    g.setColour(enabled ? Colour(97u, 18u, 167u) : Colours::darkgrey );
     g.fillEllipse(bounds);
     
-    g.setColour(Colour(255u, 154u, 1u));
+    g.setColour(enabled ? Colour(255u, 154u, 1u) : Colours::grey);
     g.drawEllipse(bounds, 1.f);
     
     if( auto* rswl = dynamic_cast<RotarySliderWithLabels*>(&slider))
     {
         auto center = bounds.getCentre();
         Path p;
+        
         Rectangle<float> r;
         r.setLeft(center.getX() - 2);
         r.setRight(center.getX() + 2);
         r.setTop(bounds.getY());
         r.setBottom(center.getY() - rswl->getTextHeight() * 1.5);
-        
         
         p.addRoundedRectangle(r, 2.f);
         
@@ -50,20 +60,65 @@ void LookAndFeel::drawRotarySlider(juce::Graphics & g, int x, int y, int width, 
         r.setSize(strWidth + 4, rswl->getTextHeight() + 2);
         r.setCentre(bounds.getCentre());
         
-        g.setColour(Colours::black);
+        g.setColour(enabled ? Colours::black : Colours::darkgrey);
         g.fillRect(r);
         
-        g.setColour(Colours::white);
+        g.setColour(enabled ? Colours::white : Colours::lightgrey);
         g.drawFittedText(text, r.toNearestInt(), juce::Justification::centred, 1);
-        
     }
+}
+
+void LookAndFeel::drawToggleButton(juce::Graphics &g,
+                                   juce::ToggleButton &toggleButton,
+                                   bool shouldDrawButtonAsHighlighted,
+                                   bool shouldDrawButtonAsDown)
+{
+    using namespace juce;
     
-    
-    
-    
-    
-    
-    
+//    if( auto* pb = dynamic_cast<PowerButton*>(&toggleButton) )
+//    {
+        Path powerButton;
+        
+        auto bounds = toggleButton.getLocalBounds();
+        
+        auto size = jmin(bounds.getWidth(), bounds.getHeight()) - 6;
+        auto r = bounds.withSizeKeepingCentre(size, size).toFloat();
+        
+        float ang = 30.f; //30.f;
+        
+        size -= 6;
+        
+        powerButton.addCentredArc(r.getCentreX(),
+                                  r.getCentreY(),
+                                  size * 0.5,
+                                  size * 0.5,
+                                  0.f,
+                                  degreesToRadians(ang),
+                                  degreesToRadians(360.f - ang),
+                                  true);
+        
+        powerButton.startNewSubPath(r.getCentreX(), r.getY());
+        powerButton.lineTo(r.getCentre());
+        
+        PathStrokeType pst(2.f, PathStrokeType::JointStyle::curved);
+        
+        auto color = toggleButton.getToggleState() ? Colours::dimgrey : Colour(0u, 172u, 1u);
+        
+        g.setColour(color);
+        g.strokePath(powerButton, pst);
+        g.drawEllipse(r, 2);
+    //}
+//    else if( auto* analyzerButton = dynamic_cast<AnalyzerButton*>(&toggleButton) )
+//    {
+//        auto color = ! toggleButton.getToggleState() ? Colours::dimgrey : Colour(0u, 172u, 1u);
+//
+//        g.setColour(color);
+//
+//        auto bounds = toggleButton.getLocalBounds();
+//        g.drawRect(bounds);
+//
+//        g.strokePath(analyzerButton->randomPath, PathStrokeType(1.f));
+//    }
 }
 
 void RotarySliderWithLabels::paint(juce::Graphics &g)
@@ -558,14 +613,26 @@ analyzerEnabledButtonAttachment(audioProcessor.apvts, "Analyzer Enabled", analyz
         addAndMakeVisible(comp);
     }
     
+    peakBypassButton.setLookAndFeel(&lnf);
+    lowcutBypassButton.setLookAndFeel(&lnf);
+    highcutBypassButton.setLookAndFeel(&lnf);
+    
+    
+    
     setSize (650, 500);
 }
 
-SimpleEQAudioProcessorEditor::~SimpleEQAudioProcessorEditor(){}
+SimpleEQAudioProcessorEditor::~SimpleEQAudioProcessorEditor(){
+    
+    peakBypassButton.setLookAndFeel(nullptr);
+    lowcutBypassButton.setLookAndFeel(nullptr);
+    highcutBypassButton.setLookAndFeel(nullptr);
+}
 
 //==============================================================================
 void SimpleEQAudioProcessorEditor::paint (juce::Graphics& g)
 {
+    
     
     using namespace juce;
     // (Our component is opaque, so we must completely fill the background with a solid colour)
